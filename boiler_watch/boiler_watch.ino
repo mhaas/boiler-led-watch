@@ -1,3 +1,5 @@
+#include "wlan_secret.h"
+
 #include <Wire.h>
 #include "Adafruit_TCS34725.h"
 #include <ESP8266WiFi.h>
@@ -50,8 +52,7 @@ void connectToWifi() {
   if (WiFi.status() != WL_CONNECTED) {
     delay(10);
     WiFi.mode(WIFI_STA);
-    // ****************
-    WiFi.begin("FOO", "BAR");
+    WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED) {
       delay(200);
