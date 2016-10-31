@@ -9,24 +9,17 @@
 #define MQTT_HOST "mqtt"
 
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_101MS, TCS34725_GAIN_1X );
-
-#define MQTT_HOST "iot.eclipse.org"
-
 WiFiClient wifiClient;
 PubSubClient client(wifiClient, MQTT_HOST);
 
 
 enum indicator_colors_t {GREEN, AMBER, RED, DARK, UNKNOWN};
-
 const indicator_colors_t COLORS[] {GREEN, AMBER, RED, DARK, UNKNOWN};
 
 const int measurement_interval_ms = 10 * 1000;
-
 const int sampling_interval_ms = 101;
 const int samples_per_measurement = 10;
 const int measurement_duration = samples_per_measurement * sampling_interval_ms;
-
-
 
 int color_frequency_per_measurement[5];
 
@@ -79,8 +72,6 @@ void setup(void) {
     Serial.println("No TCS34725 found ... check your connections");
     while (1);
   }
-
-  // Now we're ready to get readings!
 }
 
 bool canBeginMeasurement() {
