@@ -8,7 +8,7 @@
 
 #define MQTT_HOST "mqtt"
 
-Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_101MS, TCS34725_GAIN_1X );
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X );
 WiFiClient wifiClient;
 PubSubClient client(wifiClient, MQTT_HOST);
 
@@ -17,8 +17,8 @@ enum indicator_colors_t {GREEN, AMBER, RED, DARK, UNKNOWN};
 const indicator_colors_t COLORS[] {GREEN, AMBER, RED, DARK, UNKNOWN};
 
 const int measurement_interval_ms = 5 * 1000;
-const int sampling_interval_ms = 101;
-const int samples_per_measurement = 16;
+const int sampling_interval_ms = 50;
+const int samples_per_measurement = 30;
 const int measurement_duration = samples_per_measurement * sampling_interval_ms;
 
 int color_frequency_per_measurement[5];
@@ -168,22 +168,26 @@ enum indicator_colors_t convertSensorReadingToColor(light_sensor_reading_t readi
     // We need to distinguish between RED, GREEN and AMBER.
     // For the sake of this limited comparison, we only look at the red and
     // green values provided by the sensor.
-    // If the red and green values are approximately balanced, we detect the color as AMBER.
+    // If the red and green values are approximately balanced (factor amber_factor
+    // between red and green) we detect the color as AMBER.
     // Else, either RED or GREEN wins.
-    // If the clear value is below 100, we assume the LED is off and DARK.
+    // If the clear value is below dark_threshold, we assume the LED is off and DARK.
 
-    // Here are the values taken from my smartphone display with a colorized screen and
-    // Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_101MS, TCS34725_GAIN_1X );
 
-    // Red screen: R: 75 G: 18 B: 17 C: 105
-    // Green screen: R: 54 G: 112 B: 41 C: 211
-    // Amber screen: R: 79 G: 74 B: 37 C: 191
+    // These values all are influenced by the sensor integration time and gain setting.
 
-    // TODO: convert to relative delta
-    const int amber_delta = 20;
+    // It is quite possible these values have to be calibrated in the field, but
+    // they might work quite well in low-noise conditions (i.e. properly fixed to the LED).
+
+    const float amber_factor = 0.60;
     const int minimum_value = 40;
+    // The higher this number is, the higher the C value must be for a color
+    // != DARK to be detected. It is useful to have a somewhat higher number
+    // here to avoid ambiguous (UNKNOWN) readings if we sample during a transition from
+    // color to DARK or vice versa.
+    const int dark_threshold = 80;
 
-    if (reading.c < 50) {
+    if (reading.c < dark_threshold) {
         return DARK;
     }
 
@@ -194,9 +198,11 @@ enum indicator_colors_t convertSensorReadingToColor(light_sensor_reading_t readi
     if (reading.r < minimum_value && reading.g < minimum_value) {
         return UNKNOWN;
     }
-    const int red_green_difference = abs(reading.r - reading.g);
-    if (red_green_difference < amber_delta) {
-        return AMBER;
+    if (reading.r != 0) {
+        const float green_red_factor = ((float) reading.g) / reading.r;
+        if (green_red_factor > amber_factor) {
+            return AMBER;
+        }
     }
     if (reading.r > reading.g) {
         return RED;
@@ -250,9 +256,6 @@ light_sensor_reading_t readRawLightSensor() {
 }
 
 void publishMeasurementInterpretation(measurement_interpretation_t interpretation) {
-
-
-
     DynamicJsonBuffer  jsonBuffer;
 
     JsonObject& root = jsonBuffer.createObject();
@@ -286,11 +289,8 @@ void loop(void) {
         }
         if (isMeasurementDone()) {
             Serial.println("Measurement done. Interpreting it!");
-            // TODO: Process and reset
             measurement_interpretation_t interpretation = interpretMeasurement();
             publishMeasurementInterpretation(interpretation);
         }
     }
-
-
 }
