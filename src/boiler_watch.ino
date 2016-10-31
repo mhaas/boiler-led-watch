@@ -6,6 +6,7 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
+#define MQTT_HOST "mqtt"
 
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_101MS, TCS34725_GAIN_1X );
 
