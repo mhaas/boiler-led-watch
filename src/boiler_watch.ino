@@ -42,15 +42,15 @@ struct measurement_interpretation_t {
 
 void connectToWifi() {
 
-
+  Serial.println("Connecting to Wifi...");
   if (WiFi.status() != WL_CONNECTED) {
     delay(10);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED) {
-      delay(200);
-      delay(50);
+      Serial.print(".");
+      delay(250);
 
     }
   }
@@ -65,6 +65,7 @@ void connectToWifi() {
 
 void setup(void) {
   Serial.begin(9600);
+  Serial.println("Starting up...");
   connectToWifi();
   if (tcs.begin()) {
     Serial.println("Found sensor");
@@ -157,8 +158,9 @@ measurement_interpretation_t interpretMeasurement()  {
 
 enum indicator_colors_t readIndicatorColor() {
   light_sensor_reading_t reading = readRawLightSensor();
-  //printSensorReading(reading);
+  printSensorReading(reading);
   indicator_colors_t value = convertSensorReadingToColor(reading);
+  printColor(value);
   return value;
 }
 
@@ -210,6 +212,11 @@ void printSensorReading(light_sensor_reading_t reading) {
   Serial.print("C: "); Serial.print(reading.c, DEC); Serial.print(" ");
   Serial.println(" ");
 
+}
+
+void printColor(indicator_colors_t color) {
+    Serial.print("=> ");
+    Serial.println(convertColorToString(color));
 }
 
 String convertColorToString (indicator_colors_t color) {
