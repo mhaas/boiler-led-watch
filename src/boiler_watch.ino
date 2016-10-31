@@ -16,9 +16,9 @@ PubSubClient client(wifiClient, MQTT_HOST);
 enum indicator_colors_t {GREEN, AMBER, RED, DARK, UNKNOWN};
 const indicator_colors_t COLORS[] {GREEN, AMBER, RED, DARK, UNKNOWN};
 
-const int measurement_interval_ms = 10 * 1000;
+const int measurement_interval_ms = 5 * 1000;
 const int sampling_interval_ms = 101;
-const int samples_per_measurement = 10;
+const int samples_per_measurement = 16;
 const int measurement_duration = samples_per_measurement * sampling_interval_ms;
 
 int color_frequency_per_measurement[5];
