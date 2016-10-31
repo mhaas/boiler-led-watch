@@ -181,9 +181,9 @@ enum indicator_colors_t convertSensorReadingToColor(light_sensor_reading_t readi
 
     // TODO: convert to relative delta
     const int amber_delta = 20;
-    const int minimum_value = 50;
+    const int minimum_value = 40;
 
-    if (reading.c < 100) {
+    if (reading.c < 50) {
         return DARK;
     }
 
